@@ -386,6 +386,14 @@ def gateway(
     # Create channel manager
     channels = ChannelManager(config, bus)
 
+    # Register Home Assistant notification tool if HA channel is enabled
+    ha_channel = channels.get_channel("homeassistant")
+    if ha_channel:
+        from nanobot.agent.tools.notification import NotificationTool
+        notification_tool = NotificationTool(send_callback=ha_channel.send_notification)
+        agent.tools.register(notification_tool)
+        console.print("[green]✓[/green] Home Assistant notification tool enabled")
+
     def _pick_heartbeat_target() -> tuple[str, str]:
         """Pick a routable channel/chat target for heartbeat-triggered messages."""
         enabled = set(channels.enabled_channels)

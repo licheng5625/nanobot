@@ -27,6 +27,7 @@ from nanobot.config.schema import HomeAssistantConfig
 # Events for communication with HA custom component
 EVENT_CONVERSATION_REQUEST = "nanobot_conversation_request"
 EVENT_CONVERSATION_RESPONSE = "nanobot_conversation_response"
+EVENT_NOTIFICATION = "nanobot_notification"
 
 
 class HomeAssistantChannel(BaseChannel):
@@ -218,6 +219,30 @@ class HomeAssistantChannel(BaseChannel):
         })
 
         logger.debug("Sent HA response [{}]: {}...", request_id, (msg.content or "")[:50])
+
+    async def send_notification(self, title: str, message: str, notification_id: str | None = None) -> None:
+        """Send an async notification to HA via WebSocket event.
+
+        This allows nanobot to push notifications to HA independently of
+        the request/response cycle. HA custom component listens for these
+        events and creates persistent notifications.
+
+        Args:
+            title: Notification title
+            message: Notification message body
+            notification_id: Optional ID for the notification (for updates/dismissal)
+        """
+        if not self._ws:
+            logger.warning("Cannot send notification: not connected to HA")
+            return
+
+        await self._fire_event(EVENT_NOTIFICATION, {
+            "title": title,
+            "message": message,
+            "notification_id": notification_id,
+        })
+
+        logger.info("Sent HA notification: {}", title)
 
     async def stop(self) -> None:
         """Stop the Home Assistant channel."""
