@@ -55,18 +55,6 @@ class ChannelManager:
             except Exception as e:
                 logger.warning("{} channel not available: {}", name, e)
 
-        # Home Assistant channel
-        if self.config.channels.homeassistant.enabled:
-            try:
-                from nanobot.channels.homeassistant import HomeAssistantChannel
-                self.channels["homeassistant"] = HomeAssistantChannel(
-                    self.config.channels.homeassistant,
-                    self.bus,
-                )
-                logger.info("Home Assistant channel enabled")
-            except ImportError as e:
-                logger.warning("Home Assistant channel not available: {}", e)
-
         self._validate_allow_from()
 
     def _validate_allow_from(self) -> None:
